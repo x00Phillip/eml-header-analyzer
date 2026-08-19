@@ -1,0 +1,59 @@
+Return-Path: <bounce@random-domain-xyz.ru>
+Delivered-To: ofiara@przyklad-firma.pl
+Received: from mail.przyklad-firma.pl (mail.przyklad-firma.pl [203.0.113.10])
+	by mx.przyklad-firma.pl with ESMTP id a1b2c3d4
+	for <ofiara@przyklad-firma.pl>; Mon, 18 Aug 2026 09:15:22 +0000
+Received: from smtp-relay.unknown-host.ru (smtp-relay.unknown-host.ru [198.51.100.77])
+	by mail.przyklad-firma.pl with ESMTP id e5f6g7h8
+	for <ofiara@przyklad-firma.pl>; Mon, 18 Aug 2026 09:15:18 +0000
+Received: from localhost (localhost [127.0.0.1])
+	by smtp-relay.unknown-host.ru with SMTP id i9j0k1l2
+	for <ofiara@przyklad-firma.pl>; Mon, 18 Aug 2026 09:15:10 +0000
+Authentication-Results: mx.przyklad-firma.pl;
+	spf=fail smtp.mailfrom=random-domain-xyz.ru;
+	dkim=fail header.d=totally-legit-bank.com;
+	dmarc=fail (p=reject sp=reject dis=none) header.from=totally-legit-bank.com
+From: "Dzial Bezpieczenstwa - Bank Przykladowy" <support@totally-legit-bank.com>
+Reply-To: security-noreply@random-domain-xyz.ru
+To: ofiara@przyklad-firma.pl
+Subject: PILNE: Twoje konto zostalo tymczasowo zablokowane
+Date: Mon, 18 Aug 2026 09:15:00 +0000
+Message-ID: <fake-message-id-001@random-domain-xyz.ru>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="boundary-string-12345"
+
+--boundary-string-12345
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Szanowny Kliencie,
+
+Wykrylismy nietypowa aktywnosc na Twoim koncie. Ze wzgledow bezpieczenstwa
+Twoje konto zostalo tymczasowo zablokowane.
+
+Aby przywrocic dostep, zweryfikuj swoje dane logowania klikajac ponizszy link:
+
+http://totally-legit-bank-verify.ru/login?session=abc123
+
+Masz 24 godziny, w przeciwnym razie konto zostanie trwale zablokowane.
+
+Z powazaniem,
+Dzial Bezpieczenstwa
+
+--boundary-string-12345
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>Szanowny Kliencie,</p>
+<p>Wykryliśmy nietypową aktywność na Twoim koncie. Ze względów bezpieczeństwa
+Twoje konto zostało tymczasowo zablokowane.</p>
+<p>Aby przywrócić dostęp, zweryfikuj swoje dane logowania klikając poniższy przycisk:</p>
+<p><a href="http://totally-legit-bank-verify.ru/login?session=abc123">Zweryfikuj konto</a></p>
+<p>Masz 24 godziny, w przeciwnym razie konto zostanie trwale zablokowane.</p>
+<p>Z poważaniem,<br>Dział Bezpieczeństwa</p>
+</body>
+</html>
+
+--boundary-string-12345--

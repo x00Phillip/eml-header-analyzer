@@ -1,0 +1,52 @@
+Return-Path: <newsletter@przyklad-firma.pl>
+Delivered-To: pracownik@przyklad-firma.pl
+Received: from mail.przyklad-firma.pl (mail.przyklad-firma.pl [203.0.113.10])
+	by mx.przyklad-firma.pl with ESMTP id z9y8x7w6
+	for <pracownik@przyklad-firma.pl>; Mon, 18 Aug 2026 08:00:11 +0000
+Received: from smtp.przyklad-firma.pl (smtp.przyklad-firma.pl [203.0.113.15])
+	by mail.przyklad-firma.pl with ESMTPS id v5u4t3s2
+	for <pracownik@przyklad-firma.pl>; Mon, 18 Aug 2026 08:00:05 +0000
+Authentication-Results: mx.przyklad-firma.pl;
+	spf=pass smtp.mailfrom=przyklad-firma.pl;
+	dkim=pass header.d=przyklad-firma.pl;
+	dmarc=pass (p=reject sp=reject dis=none) header.from=przyklad-firma.pl
+From: "Newsletter Wewnetrzny" <newsletter@przyklad-firma.pl>
+Reply-To: newsletter@przyklad-firma.pl
+To: pracownik@przyklad-firma.pl
+Subject: Podsumowanie tygodnia - Dzial IT
+Date: Mon, 18 Aug 2026 08:00:00 +0000
+Message-ID: <legit-message-id-002@przyklad-firma.pl>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="boundary-string-67890"
+
+--boundary-string-67890
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Czesc,
+
+Ponizej podsumowanie tygodnia z dzialu IT:
+
+- Aktualizacja polityki hasel: https://intranet.przyklad-firma.pl/polityka-hasel
+- Nowe szkolenie z cyberbezpieczenstwa: https://intranet.przyklad-firma.pl/szkolenia
+
+Pozdrawiam,
+Dzial IT
+
+--boundary-string-67890
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+<html>
+<body>
+<p>Cześć,</p>
+<p>Poniżej podsumowanie tygodnia z działu IT:</p>
+<ul>
+<li><a href="https://intranet.przyklad-firma.pl/polityka-hasel">Aktualizacja polityki haseł</a></li>
+<li><a href="https://intranet.przyklad-firma.pl/szkolenia">Nowe szkolenie z cyberbezpieczeństwa</a></li>
+</ul>
+<p>Pozdrawiam,<br>Dział IT</p>
+</body>
+</html>
+
+--boundary-string-67890--
