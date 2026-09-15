@@ -1,9 +1,18 @@
 import sys
+import os
 import re
 import email
+import hashlib
 from email import policy
+from email.message import Message
 from email.utils import parseaddr
 from html.parser import HTMLParser
+
+try:
+    import extract_msg
+    HAS_EXTRACT_MSG = True
+except ImportError:
+    HAS_EXTRACT_MSG = False
 
 URL_PATTERN = re.compile(r'https?://[^\s<>"\']+')
 
@@ -11,13 +20,91 @@ URL_PATTERN = re.compile(r'https?://[^\s<>"\']+')
 def load_eml(filepath):
     with open(filepath, 'rb') as f:
         msg = email.message_from_binary_file(f, policy=policy.default)
-    return msg
+
+    plain_text = ''
+    html_text = ''
+    attachments = []
+
+    parts = msg.walk() if msg.is_multipart() else [msg]
+
+    for part in parts:
+        content_type = part.get_content_type()
+        disposition = part.get_content_disposition()
+        filename = part.get_filename()
+
+        if disposition == 'attachment' or (filename and content_type not in ('text/plain', 'text/html')):
+            payload = part.get_payload(decode=True)
+            if payload:
+                attachments.append((filename or '(bez nazwy)', payload))
+            continue
+
+        if content_type not in ('text/plain', 'text/html'):
+            continue
+        try:
+            content = part.get_content()
+        except Exception:
+            continue
+        if content_type == 'text/plain':
+            plain_text += content
+        elif content_type == 'text/html':
+            html_text += content
+
+    return msg, plain_text, html_text, attachments
 
 
-def print_basic_headers(msg):
+def build_headers_from_fields(msg_obj):
+    headers = Message()
+    headers['From'] = msg_obj.sender or ''
+    headers['To'] = msg_obj.to or ''
+    headers['Reply-To'] = getattr(msg_obj, 'replyTo', None) or ''
+    headers['Subject'] = msg_obj.subject or ''
+    headers['Date'] = str(msg_obj.date) if msg_obj.date else ''
+    return headers
+
+
+def load_msg(filepath):
+    if not HAS_EXTRACT_MSG:
+        print("Błąd: obsługa plików .msg wymaga biblioteki 'extract-msg'.")
+        print("Zainstaluj ją komendą: pip install extract-msg")
+        sys.exit(1)
+
+    msg_obj = extract_msg.Message(filepath)
+
+    if msg_obj.header is not None:
+        headers = msg_obj.header
+    else:
+        print("UWAGA: ten plik .msg nie zawiera pełnych surowych nagłówków transportowych.")
+        print("       Analiza SPF/DKIM/DMARC i ścieżki Received będzie niedostępna.\n")
+        headers = build_headers_from_fields(msg_obj)
+
+    plain_text = msg_obj.body or ''
+    html_text = msg_obj.htmlBody or ''
+    if isinstance(html_text, bytes):
+        html_text = html_text.decode('utf-8', errors='replace')
+
+    attachments = []
+    for att in msg_obj.attachments:
+        filename = att.longFilename or att.shortFilename or '(bez nazwy)'
+        data = att.data
+        if data:
+            attachments.append((filename, data))
+
+    msg_obj.close()
+    return headers, plain_text, html_text, attachments
+
+
+def load_message(filepath):
+    ext = os.path.splitext(filepath)[1].lower()
+    if ext == '.msg':
+        return load_msg(filepath)
+    else:
+        return load_eml(filepath)
+
+
+def print_basic_headers(headers):
     print("=== PODSTAWOWE NAGŁÓWKI ===")
     for header in ['From', 'Reply-To', 'Return-Path', 'To', 'Subject', 'Date']:
-        value = msg.get(header, '(brak)')
+        value = headers.get(header, '(brak)')
         print(f"{header:12}: {value}")
     print()
 
@@ -31,12 +118,12 @@ def extract_domain(address):
     return email_addr.split('@')[-1].lower()
 
 
-def analyze_discrepancies(msg):
+def analyze_discrepancies(headers):
     print("=== ROZBIEŻNOŚCI NADAWCY ===")
 
-    from_domain = extract_domain(msg.get('From'))
-    reply_to_domain = extract_domain(msg.get('Reply-To'))
-    return_path_domain = extract_domain(msg.get('Return-Path'))
+    from_domain = extract_domain(headers.get('From'))
+    reply_to_domain = extract_domain(headers.get('Reply-To'))
+    return_path_domain = extract_domain(headers.get('Return-Path'))
 
     print(f"From domain:        {from_domain or '(brak)'}")
     print(f"Reply-To domain:    {reply_to_domain or '(brak)'}")
@@ -59,9 +146,9 @@ def analyze_discrepancies(msg):
     print()
 
 
-def analyze_authentication(msg):
+def analyze_authentication(headers):
     print("=== UWIERZYTELNIANIE (SPF/DKIM/DMARC) ===")
-    auth_headers = msg.get_all('Authentication-Results', [])
+    auth_headers = headers.get_all('Authentication-Results', [])
 
     if not auth_headers:
         print("Brak nagłówka Authentication-Results — serwer nie dodał wyniku weryfikacji.")
@@ -83,9 +170,9 @@ def analyze_authentication(msg):
         print()
 
 
-def analyze_received_path(msg):
+def analyze_received_path(headers):
     print("=== ŚCIEŻKA RECEIVED (od najnowszego do najstarszego) ===")
-    received_headers = msg.get_all('Received', [])
+    received_headers = headers.get_all('Received', [])
 
     if not received_headers:
         print("Brak nagłówków Received.")
@@ -96,7 +183,6 @@ def analyze_received_path(msg):
         clean = ' '.join(hop.split())
         print(f"[Hop {i}] {clean}")
     print()
-
 
 class LinkExtractor(HTMLParser):
     def __init__(self):
@@ -110,32 +196,18 @@ class LinkExtractor(HTMLParser):
                     self.links.add(attr_value)
 
 
-def extract_links(msg):
+def extract_links(plain_text, html_text):
     print("=== ZNALEZIONE LINKI ===")
     all_links = set()
 
-    if msg.is_multipart():
-        parts = msg.walk()
-    else:
-        parts = [msg]
+    if html_text:
+        parser = LinkExtractor()
+        parser.feed(html_text)
+        all_links.update(parser.links)
+        all_links.update(URL_PATTERN.findall(html_text))
 
-    for part in parts:
-        content_type = part.get_content_type()
-        if content_type not in ('text/plain', 'text/html'):
-            continue
-
-        try:
-            content = part.get_content()
-        except Exception:
-            continue
-
-        if content_type == 'text/html':
-            parser = LinkExtractor()
-            parser.feed(content)
-            all_links.update(parser.links)
-            all_links.update(URL_PATTERN.findall(content))
-        else:
-            all_links.update(URL_PATTERN.findall(content))
+    if plain_text:
+        all_links.update(URL_PATTERN.findall(plain_text))
 
     if all_links:
         for link in sorted(all_links):
@@ -144,16 +216,35 @@ def extract_links(msg):
         print("  Brak linków.")
     print()
 
+def analyze_attachments(attachments):
+    print("=== ZAŁĄCZNIKI ===")
+
+    if not attachments:
+        print("  Brak załączników.")
+        print()
+        return
+
+    for filename, data in attachments:
+        size = len(data)
+        md5_hash = hashlib.md5(data).hexdigest()
+        sha256_hash = hashlib.sha256(data).hexdigest()
+
+        print(f"  Plik:   {filename}")
+        print(f"  Rozmiar: {size} bajtów")
+        print(f"  MD5:    {md5_hash}")
+        print(f"  SHA256: {sha256_hash}")
+        print()
+
 
 def main():
     if len(sys.argv) != 2:
-        print("Użycie: python analiza_eml.py plik.eml")
+        print("Użycie: python analiza_eml.py plik")
         sys.exit(1)
 
     filepath = sys.argv[1]
 
     try:
-        msg = load_eml(filepath)
+        headers, plain_text, html_text, attachments = load_message(filepath)
     except FileNotFoundError:
         print(f"Błąd: nie znaleziono pliku '{filepath}'")
         sys.exit(1)
@@ -163,12 +254,12 @@ def main():
 
     print(f"Analiza pliku: {filepath}\n")
 
-    print_basic_headers(msg)
-    analyze_discrepancies(msg)
-    analyze_authentication(msg)
-    analyze_received_path(msg)
-    extract_links(msg)
-
+    print_basic_headers(headers)
+    analyze_discrepancies(headers)
+    analyze_authentication(headers)
+    analyze_received_path(headers)
+    extract_links(plain_text, html_text)
+    analyze_attachments(attachments)
 
 if __name__ == '__main__':
     main()
