@@ -88,9 +88,10 @@ DMARC : fail [PODEJRZANE]
 
 === ZNALEZIONE LINKI ===
 
-http://totally-legit-bank-verify.ru/login
+hxxp://totally-legit-bank-verify[.]ru/login
 
 === ZAŁĄCZNIKI ===
+
 Plik:   faktura.pdf.exe
   Rozmiar: 45812 bajtów
   MD5:    d41d8cd98f00b204e9800998ecf8427e
