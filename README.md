@@ -42,13 +42,13 @@ Analiza pliku: przyklad.eml
 
 === PODSTAWOWE NAGŁÓWKI ===
 
-From : "IT Support" support@totally-legit-bank.com
+From : "IT Support" support@totally-legit-bank[.]com
 
-Reply-To : attacker@random-domain.ru
+Reply-To : attacker@random-domain[.]ru
 
-Return-Path : bounce@random-domain.ru
+Return-Path : bounce@random-domain[.]ru
 
-To : ofiara@firma.pl
+To : ofiara@firma[.]pl
 
 Subject : Pilna weryfikacja konta
 
@@ -56,15 +56,15 @@ Date : Mon, 18 Aug 2026 10:15:00 +0000
 
 === ROZBIEŻNOŚCI NADAWCY ===
 
-From domain: totally-legit-bank.com
+From domain: totally-legit-bank[.]com
 
-Reply-To domain: random-domain.ru
+Reply-To domain: random-domain[.]ru
 
-Return-Path domain: random-domain.ru
+Return-Path domain: random-domain[.]ru
 
-! PODEJRZANE: Reply-To (random-domain.ru) różni się od From (totally-legit-bank.com)
+! PODEJRZANE: Reply-To (random-domain[.]ru) różni się od From (totally-legit-bank[.]com)
 
-! UWAGA: Return-Path (random-domain.ru) różni się od From (totally-legit-bank.com)
+! UWAGA: Return-Path (random-domain[.]ru) różni się od From (totally-legit-bank[.]com)
 
 === UWIERZYTELNIANIE (SPF/DKIM/DMARC) ===
 
@@ -72,7 +72,7 @@ Return-Path domain: random-domain.ru
 
 Nagłówek surowy:
 
-spf=fail smtp.mailfrom=random-domain.ru; dkim=fail; dmarc=fail
+spf=fail smtp.mailfrom=random-domain[.]ru; dkim=fail; dmarc=fail
 
 SPF : fail [PODEJRZANE]
 
@@ -82,9 +82,9 @@ DMARC : fail [PODEJRZANE]
 
 === ŚCIEŻKA RECEIVED (od najnowszego do najstarszego) ===
 
-[Hop 1] from mail.firma.pl by mx.firma.pl ...
+[Hop 1] from mail[.]firma[.]pl by mx[.]firma[.]pl ...
 
-[Hop 2] from unknown-server.ru by mail.firma.pl ...
+[Hop 2] from unknown-server[.]ru by mail.firma[.]pl ...
 
 === ZNALEZIONE LINKI ===
 
